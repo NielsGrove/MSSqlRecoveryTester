@@ -14,8 +14,8 @@
   2017-07-31  (Niels Grove-Rasmussen) File created to investigate project file structure.
 
 .LINK
-  TechNet Library: about_Functions_Advanced
-  https://technet.microsoft.com/en-us/library/dd315326.aspx
+  Microsoft Docs: Azure.Storage
+  https://docs.microsoft.com/en-us/powershell/module/azure.storage/
 #>
 
 #Requires -Version 4
@@ -26,9 +26,28 @@ Set-StrictMode -Version Latest
 
 <#
 *) Create blob storage for backup file(-s)
-   +) Create Azure Storage Account: Cool access tier
+   +) Create Azure Storage Account: Standard performance tier, Cool access tier, LRS (ZRS/GRS option?)
       (https://docs.microsoft.com/en-us/azure/storage/storage-create-storage-account)
+   +) Create Azure Container
+      (https://docs.microsoft.com/en-us/powershell/module/azure.storage/New-AzureStorageContainer)
+   +) Create Azure Blob storage
+      ()
 *) Create virtual server for SSDB
+   (https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-manage-vm)
+   +) Create Azure Resource Group
+      (https://docs.microsoft.com/en-us/powershell/module/azurerm.resources/new-azurermresourcegroup)
+   +) Create Azure Virtual Network subnet
+      (https://docs.microsoft.com/en-us/powershell/module/azurerm.network/new-azurermvirtualnetworksubnetconfig)
+   +) Create Azure Virtual Network
+      (https://docs.microsoft.com/en-us/powershell/module/azurerm.network/new-azurermvirtualnetwork)
+   +) Create Azure public IP address
+      (https://docs.microsoft.com/en-us/powershell/module/azurerm.network/new-azurermpublicipaddress)
+   +) Create network interface card
+      (https://docs.microsoft.com/en-us/powershell/module/azurerm.network/new-azurermnetworkinterface)
+   +) Create network security group; create rule, create group, add group to subnet and update network
+      (https://docs.microsoft.com/en-us/azure/virtual-network/virtual-networks-nsg)
+   +) Create Azure virtual machine
+      
 *) Install SSDB, with DSC
 #>
 
