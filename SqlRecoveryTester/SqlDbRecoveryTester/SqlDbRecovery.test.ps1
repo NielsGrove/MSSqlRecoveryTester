@@ -41,6 +41,7 @@ function New-AzureSsdb {
   https://docs.microsoft.com/en-us/azure/virtual-machines/windows/tutorial-manage-vm
 .NOTES
   2017-07-31  (Niels Grove-Rasmussen) Function created to implement sandbox inspired from Microsoft tutorial.
+  2017-08-01  (Niels Grove-Rasmussen) Function can create one Azure vm wo/SSDB. Can begin parameterisation.
 #>
 [CmdletBinding()]
 [OutputType([void])]
@@ -68,16 +69,20 @@ Begin {
 }
 
 Process {
+  'Create Azure Resource Group identifier...' | Write-Verbose
+  [string]$AzureRgId = "0:yyyyMMdd'T'HHmmss'Z'" -f [System.DateTime]::UtcNow
+  "Azure Resource Group ID = '$AzureRgId'." | Write-Verbose
+
   'Setting variables with common values...' | Write-Verbose
-  [string]$ResourceGroupName = 'SqlRecoveryRG'
+  [string]$ResourceGroupName = 'SqlRecoveryRG_' + $AzureRgId
   [string]$LocationName = 'WestEurope'
-  [string]$SubnetName = 'SqlRecoverySubnet'
-  [string]$PublicIpAddressName = 'SqlRecoveryIp'
-  [string]$NicName = 'SqlRecoveryNic'
-  [string]$NsgRuleName = 'SqlRecoveryNsgRule'
-  [string]$NsgName = 'SqlRecoveryNsg'
-  [string]$DiskName = 'SqlRecoveryOsDisk'
-  [string]$vmName = 'SqlRecoveryVM'
+  [string]$SubnetName = 'Subnet_' + $AzureRgId
+  [string]$PublicIpAddressName = 'PublicIp_' + $AzureRgId
+  [string]$NicName = 'Nic_' + $AzureRgId
+  [string]$NsgRuleName = 'NsgRule_' + $AzureRgId
+  [string]$NsgName = 'Nsg_' + $AzureRgId
+  [string]$DiskName = 'OsDisk_' + $AzureRgId
+  [string]$vmName = 'VM_' + $AzureRgId
 
   'Test if Azure resource group exists...' | Write-Verbose
   #ToDo: Test Azure resource group
