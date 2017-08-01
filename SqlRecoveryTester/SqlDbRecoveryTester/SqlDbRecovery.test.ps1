@@ -53,9 +53,9 @@ Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
   "{0:s}Z  ::  NewAzureSsdb( '<param1>' )" -f [System.DateTime]::UtcNow | Write-Verbose
 
-  Import-Module -Name AzureRM -Verbose $false
+  Import-Module -Name AzureRM
 
-  #ToDo: Test AzureRM module
+  'Test AzureRM module import...' | Write-Verbose
   $AzureRM = Get-Module AzureRM
   if ($AzureRM)
   { 'OK - PowerShell module AzureRM is imported.' | Write-Verbose }
@@ -163,7 +163,7 @@ Process {
   $vm = Set-AzureRmVMOSDisk `
     -VM $vm `
     -Name $DiskName `
-    -DiskSizeInGB 64 `
+    -DiskSizeInGB 128 `
     -CreateOption FromImage `
     -Caching ReadWrite
   'Add NIC...' | Write-Verbose
