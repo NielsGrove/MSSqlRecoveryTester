@@ -55,8 +55,10 @@ Begin {
 
   Import-Module -Name AzureRM
 
+  #ToDo: Test AzureRM module
   Get-Module AzureRM
 
+  #ToDo: Test Azure login
   'Log in to Azure...'
   Login-AzureRmAccount
 }
@@ -66,6 +68,10 @@ Process {
   [string]$ResourceGroupName = 'SqlRecoveryRG'
   [string]$LocationName = 'WestEurope'
   [string]$SubnetName = 'SqlRecoverySubnet'
+  [string]$PublicIpAddressName = 'SqlRecoveryIp'
+  [string]$NicName = 'SqlRecoveryNic'
+  [string]$NsgRuleName = 'SqlRecoveryNsgRule'
+  [string]$DiskName = 'SqlRecoveryOsDisk'
   [string]$vmName = 'SqlRecoveryVM'
 
   'Create Azure resource group...' #| Write-Verbose
@@ -73,33 +79,33 @@ Process {
 
   'Create Azure subnet...' #| Write-Verbose  # Microsoft.Azure.Commands.Network.Models.PSSubnet
   $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
-    -Name SqlRecoverySubnet `
+    -Name $SubnetName `
     -AddressPrefix 192.168.1.0/24
   'Create Azure virtual network...' #| Write-Verbose
   $vnet = New-AzureRmVirtualNetwork `
     -ResourceGroupName $ResourceGroupName `
-    -Location 'WestEurope' `
+    -Location $LocationName `
     -Name SqlRecoveryVnet `
     -AddressPrefix 192.168.0.0/16 `
     -Subnet $subnetConfig
   'Create Azure public IP address...' #| Write-Verbose
   $pip = New-AzureRmPublicIpAddress `
     -ResourceGroupName $ResourceGroupName `
-    -Location 'WestEurope' `
+    -Location $LocationName `
     -AllocationMethod Static `
-    -Name myPublicIPAddress
+    -Name $PublicIpAddressName
   'Create Azure network interface card (NIC)...' #| Write-Verbose
   $nic = New-AzureRmNetworkInterface `
     -ResourceGroupName $ResourceGroupName `
-    -Location 'WestEurope' `
-    -Name myNic `
+    -Location $LocationName `
+    -Name $NicName `
     -SubnetId $vnet.Subnets[0].Id `
     -PublicIpAddressId $pip.Id
 
   'Create Azure Network Security Group (NSG):'
   'Create Azure security rule...'
   $nsgRule = New-AzureRmNetworkSecurityRuleConfig `
-    -Name myNSGRule `
+    -Name $NsgRuleName `
     -Protocol Tcp `
     -Direction Inbound `
     -Priority 1000 `
@@ -110,7 +116,7 @@ Process {
     -Access Allow
   'Create Azure Network Security Group...'
   Set-AzureRmVirtualNetworkSubnetConfig `
-    -Name SqlRecoverySubnet `
+    -Name $SubnetName `
     -VirtualNetwork $vnet `
     -NetworkSecurityGroup $nsg `
     -AddressPrefix 192.168.1.0/24
@@ -122,12 +128,12 @@ Process {
   'Get credentials for admin on vm...'
   $cred = Get-Credential
   'Create initial configuration...'
-  $vm = New-AzureRmVMConfig -VMName myVM -VMSize Standard_DS2
+  $vm = New-AzureRmVMConfig -VMName $vmName -VMSize Standard_DS2
   'Add OS information...'
   $vm = Set-AzureRmVMOperatingSystem `
     -VM $vm `
     -Windows `
-    -ComputerName myVM `
+    -ComputerName $vmName `
     -Credential $cred `
     -ProvisionVMAgent -EnableAutoUpdate
   'Add image information...'
@@ -140,7 +146,7 @@ Process {
   'Add OS disk settings...'
   $vm = Set-AzureRmVMOSDisk `
     -VM $vm `
-    -Name myOsDisk `
+    -Name $DiskName `
     -DiskSizeInGB 128 `
     -CreateOption FromImage `
     -Caching ReadWrite
