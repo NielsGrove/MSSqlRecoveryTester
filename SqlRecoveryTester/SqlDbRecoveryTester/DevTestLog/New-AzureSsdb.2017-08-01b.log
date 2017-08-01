@@ -1,0 +1,90 @@
+VERBOSE: 2017-08-01T12:13:02Z  ::  NewAzureSsdb( '<param1>' )
+Import-Module : A positional parameter cannot be found that accepts argument 'False'.
+At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRecovery.test.ps1:56 char:3
++   Import-Module -Name AzureRM -Verbose $false
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidArgument: (:) [Import-Module], ParameterBindingException
+    + FullyQualifiedErrorId : PositionalParameterNotFound,Microsoft.PowerShell.Commands.ImportModuleCommand
+ 
+VERBOSE: OK - PowerShell module AzureRM is imported.
+VERBOSE: Log in to Azure...
+
+
+Environment           : AzureCloud
+Account               : ngr@pfa.dk
+TenantId              : a7b4bea5-fce8-419e-942b-fe82836cee14
+SubscriptionId        : 5bf65d6c-4731-4b23-9a01-ffc28d822a2d
+SubscriptionName      : Visual Studio Enterprise
+CurrentStorageAccount : 
+
+VERBOSE: Setting variables with common values...
+VERBOSE: Test if Azure resource group exists...
+VERBOSE: Create Azure resource group...
+VERBOSE: 14:13:22 - Created resource group 'SqlRecoveryRG' in location 'westeurope'
+
+ResourceGroupName : SqlRecoveryRG
+Location          : westeurope
+ProvisioningState : Succeeded
+Tags              : 
+TagsTable         : 
+ResourceId        : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG
+
+VERBOSE: Create Azure subnet...
+VERBOSE: Create Azure virtual network...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+VERBOSE: Create Azure public IP address...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+VERBOSE: Create Azure network interface card (NIC)...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+VERBOSE: Create Azure Network Security Group (NSG):
+VERBOSE: Create Azure security rule...
+VERBOSE: Create Azure Network Security Group...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+New-AzureRmNetworkSecurityGroup : Resource group 'myResourceGroupVM' could not be found.
+StatusCode: 404
+ReasonPhrase: Not Found
+OperationID : '9b76f882-9f0e-4377-a3f9-a1fe57dc099a'
+At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRecovery.test.ps1:126 char:9
++   $nsg= New-AzureRmNetworkSecurityGroup `
++         ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : CloseError: (:) [New-AzureRmNetworkSecurityGroup], NetworkCloudException
+    + FullyQualifiedErrorId : Microsoft.Azure.Commands.Network.NewAzureNetworkSecurityGroupCommand
+ 
+VERBOSE: Add NSG to subnet...
+
+AddressSpace               : Microsoft.Azure.Commands.Network.Models.PSAddressSpace
+DhcpOptions                : Microsoft.Azure.Commands.Network.Models.PSDhcpOptions
+Subnets                    : {SqlRecoverySubnet}
+VirtualNetworkPeerings     : {}
+ProvisioningState          : Succeeded
+AddressSpaceText           : {
+                               "AddressPrefixes": [
+                                 "192.168.0.0/16"
+                               ]
+                             }
+DhcpOptionsText            : {}
+SubnetsText                : [
+                               {
+                                 "Name": "SqlRecoverySubnet",
+                                 "Etag": "W/\"3aa27547-85d3-425e-b272-1f51bdfc6e52\"",
+                                 "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet/subnets/SqlRecoverySubnet",
+                                 "AddressPrefix": "192.168.1.0/24",
+                                 "IpConfigurations": [],
+                                 "ResourceNavigationLinks": [],
+                                 "ProvisioningState": "Succeeded"
+                               }
+                             ]
+VirtualNetworkPeeringsText : []
+ResourceGroupName          : SqlRecoveryRG
+Location                   : westeurope
+ResourceGuid               : 0505cebb-0f74-482f-8089-b173398cdab7
+Type                       : Microsoft.Network/virtualNetworks
+Tag                        : 
+TagsTable                  : 
+Name                       : SqlRecoveryVnet
+Etag                       : W/"3aa27547-85d3-425e-b272-1f51bdfc6e52"
+Id                         : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet
+
+VERBOSE: Update Azure virtual network...
+
+PS C:\WINDOWS> 

@@ -51,9 +51,9 @@ Param(
 
 Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
-  "{0:s}Z  ::  Verb-Noun( '$param1' )" -f [System.DateTime]::UtcNow | Write-Verbose
+  "{0:s}Z  ::  NewAzureSsdb( '<param1>' )" -f [System.DateTime]::UtcNow | Write-Verbose
 
-  Import-Module -Name AzureRM
+  Import-Module -Name AzureRM -Verbose $false
 
   #ToDo: Test AzureRM module
   $AzureRM = Get-Module AzureRM
@@ -124,7 +124,7 @@ Process {
     -Access Allow
   'Create Azure Network Security Group...' | Write-Verbose
   $nsg= New-AzureRmNetworkSecurityGroup `
-    -ResourceGroupName myResourceGroupVM `
+    -ResourceGroupName $ResourceGroupName `
     -Location $LocationName `
     -Name $NsgName `
     -SecurityRules $nsgRule
