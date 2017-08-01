@@ -52,11 +52,11 @@ Param(
 Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
   "{0:s}Z  ::  Verb-Noun( '$param1' )" -f [System.DateTime]::UtcNow | Write-Verbose
+
+  Import-Module -Name Azure
 }
 
 Process {
-  Import-Module -Name Azure
-
   'Create Azure resource group...' #| Write-Verbose
   New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'West Europe'
 
