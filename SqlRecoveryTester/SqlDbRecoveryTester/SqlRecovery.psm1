@@ -26,6 +26,11 @@ Set-StrictMode -Version Latest
 
 #region Initialise
 
+<#
+Invoke as local administrator:
+1) Install-PackageProvider -Name NuGet
+2) Install-Module -Name Azure
+#>
 
 function Verb-Noun {
 <#

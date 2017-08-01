@@ -55,6 +55,8 @@ Begin {
 }
 
 Process {
+  Import-Module -Name Azure
+
   'Create Azure resource group...' #| Write-Verbose
   New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'West Europe'
 
