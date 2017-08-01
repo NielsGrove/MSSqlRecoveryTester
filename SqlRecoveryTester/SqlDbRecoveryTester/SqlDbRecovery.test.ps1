@@ -18,7 +18,7 @@
   https://technet.microsoft.com/en-us/library/dd315326.aspx
 #>
 
-#Requires -Version 4
+#Requires -Version 5
 Set-StrictMode -Version Latest
 
 #Import-Module E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRecovery.psm1
@@ -56,45 +56,53 @@ Begin {
   Import-Module -Name AzureRM
 
   #ToDo: Test AzureRM module
-  Get-Module AzureRM
+  $AzureRM = Get-Module AzureRM
+  if ($AzureRM)
+  { 'OK - PowerShell module AzureRM is imported.' | Write-Verbose }
+  else
+  { throw 'PowerShell module AzureRM is NOT imported!' }
 
   #ToDo: Test Azure login
-  'Log in to Azure...'
+  'Log in to Azure...' | Write-Verbose
   Login-AzureRmAccount
 }
 
 Process {
-  'Setting variables with common values...' #| Write-Verbose
+  'Setting variables with common values...' | Write-Verbose
   [string]$ResourceGroupName = 'SqlRecoveryRG'
   [string]$LocationName = 'WestEurope'
   [string]$SubnetName = 'SqlRecoverySubnet'
   [string]$PublicIpAddressName = 'SqlRecoveryIp'
   [string]$NicName = 'SqlRecoveryNic'
   [string]$NsgRuleName = 'SqlRecoveryNsgRule'
+  [string]$NsgName = 'SqlRecoveryNsg'
   [string]$DiskName = 'SqlRecoveryOsDisk'
   [string]$vmName = 'SqlRecoveryVM'
 
-  'Create Azure resource group...' #| Write-Verbose
+  'Test if Azure resource group exists...' | Write-Verbose
+  #ToDo: Test Azure resource group
+
+  'Create Azure resource group...' | Write-Verbose
   New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
 
-  'Create Azure subnet...' #| Write-Verbose  # Microsoft.Azure.Commands.Network.Models.PSSubnet
+  'Create Azure subnet...' | Write-Verbose  # Microsoft.Azure.Commands.Network.Models.PSSubnet
   $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
     -Name $SubnetName `
     -AddressPrefix 192.168.1.0/24
-  'Create Azure virtual network...' #| Write-Verbose
+  'Create Azure virtual network...' | Write-Verbose
   $vnet = New-AzureRmVirtualNetwork `
     -ResourceGroupName $ResourceGroupName `
     -Location $LocationName `
     -Name SqlRecoveryVnet `
     -AddressPrefix 192.168.0.0/16 `
     -Subnet $subnetConfig
-  'Create Azure public IP address...' #| Write-Verbose
+  'Create Azure public IP address...' | Write-Verbose
   $pip = New-AzureRmPublicIpAddress `
     -ResourceGroupName $ResourceGroupName `
     -Location $LocationName `
     -AllocationMethod Static `
     -Name $PublicIpAddressName
-  'Create Azure network interface card (NIC)...' #| Write-Verbose
+  'Create Azure network interface card (NIC)...' | Write-Verbose
   $nic = New-AzureRmNetworkInterface `
     -ResourceGroupName $ResourceGroupName `
     -Location $LocationName `
@@ -102,8 +110,8 @@ Process {
     -SubnetId $vnet.Subnets[0].Id `
     -PublicIpAddressId $pip.Id
 
-  'Create Azure Network Security Group (NSG):'
-  'Create Azure security rule...'
+  'Create Azure Network Security Group (NSG):' | Write-Verbose
+  'Create Azure security rule...' | Write-Verbose
   $nsgRule = New-AzureRmNetworkSecurityRuleConfig `
     -Name $NsgRuleName `
     -Protocol Tcp `
@@ -114,54 +122,62 @@ Process {
     -DestinationAddressPrefix * `
     -DestinationPortRange 3389 `
     -Access Allow
-  'Create Azure Network Security Group...'
+  'Create Azure Network Security Group...' | Write-Verbose
+  $nsg= New-AzureRmNetworkSecurityGroup `
+    -ResourceGroupName myResourceGroupVM `
+    -Location $LocationName `
+    -Name $NsgName `
+    -SecurityRules $nsgRule
+  'Add NSG to subnet...' | Write-Verbose
   Set-AzureRmVirtualNetworkSubnetConfig `
     -Name $SubnetName `
     -VirtualNetwork $vnet `
     -NetworkSecurityGroup $nsg `
     -AddressPrefix 192.168.1.0/24
-  'Update Azure virtual network...'
+  'Update Azure virtual network...' | Write-Verbose
   Set-AzureRmVirtualNetwork -VirtualNetwork $vnet
-  '/NSG created.'
+  '/NSG created.' | Write-Verbose
 
-  'Create Azure virtual machine:'
-  'Get credentials for admin on vm...'
+  'Create Azure virtual machine:' | Write-Verbose
+  'Get credentials for admin on vm...' | Write-Verbose
   $cred = Get-Credential
-  'Create initial configuration...'
-  $vm = New-AzureRmVMConfig -VMName $vmName -VMSize Standard_DS2
-  'Add OS information...'
+  'Create initial configuration...' | Write-Verbose
+  $vm = New-AzureRmVMConfig `
+    -VMName $vmName `
+    -VMSize Standard_DS2
+  'Add OS information...' | Write-Verbose
   $vm = Set-AzureRmVMOperatingSystem `
     -VM $vm `
     -Windows `
     -ComputerName $vmName `
     -Credential $cred `
     -ProvisionVMAgent -EnableAutoUpdate
-  'Add image information...'
+  'Add image information...' | Write-Verbose
   $vm = Set-AzureRmVMSourceImage `
     -VM $vm `
     -PublisherName MicrosoftWindowsServer `
     -Offer WindowsServer `
     -Skus 2016-Datacenter `
     -Version latest
-  'Add OS disk settings...'
+  'Add OS disk settings...' | Write-Verbose
   $vm = Set-AzureRmVMOSDisk `
     -VM $vm `
     -Name $DiskName `
-    -DiskSizeInGB 128 `
+    -DiskSizeInGB 64 `
     -CreateOption FromImage `
     -Caching ReadWrite
-  'Add NIC...'
+  'Add NIC...' | Write-Verbose
   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
-  'Create virtual machine...'
+  'Create virtual machine...' | Write-Verbose
   New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $LocationName -VM $vm
-  '/vm created.'
+  '/virtual machine created.' | Write-Verbose
 
   #ToDo: Install SSDB (w/DSC)
 }
 
 End {
   $mywatch.Stop()
-  [string]$Message = "<function> finished with success. Duration = $($mywatch.Elapsed.ToString()). [hh:mm:ss.ddd]"
+  [string]$Message = "New-AzureSsdb finished with success. Duration = $($mywatch.Elapsed.ToString()). [hh:mm:ss.ddd]"
   "{0:s}Z  $Message" -f [System.DateTime]::UtcNow | Write-Output
 }
 }  # New-AzureSsdb()
@@ -215,4 +231,4 @@ End {
 ###  INVOKE  ###
 
 Clear-Host
-#<function call> -Verbose -Debug
+New-AzureSsdb -Verbose #-Debug
