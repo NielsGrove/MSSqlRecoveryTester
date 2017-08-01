@@ -20,7 +20,7 @@
   https://technet.microsoft.com/en-us/library/dd315326.aspx
 #>
 
-#Requires -Version 4
+#Requires -Version 5
 Set-StrictMode -Version Latest
 
 
@@ -29,7 +29,7 @@ Set-StrictMode -Version Latest
 <#
 Invoke as local administrator:
 1) Install-PackageProvider -Name NuGet
-2) Install-Module -Name Azure
+2) Install-Module -Name AzureRM
 #>
 
 function Verb-Noun {

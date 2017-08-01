@@ -53,34 +53,45 @@ Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
   "{0:s}Z  ::  Verb-Noun( '$param1' )" -f [System.DateTime]::UtcNow | Write-Verbose
 
-  Import-Module -Name Azure
+  Import-Module -Name AzureRM
+
+  Get-Module AzureRM
+
+  'Log in to Azure...'
+  Login-AzureRmAccount
 }
 
 Process {
-  'Create Azure resource group...' #| Write-Verbose
-  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'West Europe'
+  'Setting variables with common values...' #| Write-Verbose
+  [string]$ResourceGroupName = 'SqlRecoveryRG'
+  [string]$LocationName = 'WestEurope'
+  [string]$SubnetName = 'SqlRecoverySubnet'
+  [string]$vmName = 'SqlRecoveryVM'
 
-  'Create Azure subnet...' #| Write-Verbose
+  'Create Azure resource group...' #| Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
+
+  'Create Azure subnet...' #| Write-Verbose  # Microsoft.Azure.Commands.Network.Models.PSSubnet
   $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
     -Name SqlRecoverySubnet `
     -AddressPrefix 192.168.1.0/24
   'Create Azure virtual network...' #| Write-Verbose
   $vnet = New-AzureRmVirtualNetwork `
-    -ResourceGroupName SqlRecoveryRG `
-    -Location 'West Europe' `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
     -Name SqlRecoveryVnet `
-    -AddressPrefix 192.168.0.0/16 ` 
+    -AddressPrefix 192.168.0.0/16 `
     -Subnet $subnetConfig
   'Create Azure public IP address...' #| Write-Verbose
-  $pip = New-AzureRmPublicIpAddress ` 
-    -ResourceGroupName SqlRecoveryRG `
-    -Location 'West-Europe' ` 
+  $pip = New-AzureRmPublicIpAddress `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
     -AllocationMethod Static `
     -Name myPublicIPAddress
   'Create Azure network interface card (NIC)...' #| Write-Verbose
   $nic = New-AzureRmNetworkInterface `
-    -ResourceGroupName SqlRecoveryRG  `
-    -Location 'West Europe' `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
     -Name myNic `
     -SubnetId $vnet.Subnets[0].Id `
     -PublicIpAddressId $pip.Id
@@ -99,7 +110,7 @@ Process {
     -Access Allow
   'Create Azure Network Security Group...'
   Set-AzureRmVirtualNetworkSubnetConfig `
-    -Name mySubnet `
+    -Name SqlRecoverySubnet `
     -VirtualNetwork $vnet `
     -NetworkSecurityGroup $nsg `
     -AddressPrefix 192.168.1.0/24
@@ -136,7 +147,7 @@ Process {
   'Add NIC...'
   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
   'Create virtual machine...'
-  New-AzureRmVM -ResourceGroupName myResourceGroupVM -Location EastUS -VM $vm
+  New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $LocationName -VM $vm
   '/vm created.'
 
   #ToDo: Install SSDB (w/DSC)

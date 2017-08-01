@@ -1,0 +1,413 @@
+PS C:\WINDOWS> Import-Module -Name Azure
+
+PS C:\WINDOWS>   'Create Azure resource group...' #| Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
+
+Create Azure resource group...
+New-AzureRmResourceGroup : The term 'New-AzureRmResourceGroup' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the pat
+h is correct and try again.
+At line:2 char:3
++   New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (New-AzureRmResourceGroup:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+PS C:\WINDOWS> Import-Module -Name AzureRM
+
+  Get-Module -Name AzureRM
+Import-Module : The specified module 'AzureRM' was not loaded because no valid module file was found in any module directory.
+At line:1 char:1
++ Import-Module -Name AzureRM
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ResourceUnavailable: (AzureRM:String) [Import-Module], FileNotFoundException
+    + FullyQualifiedErrorId : Modules_ModuleNotFound,Microsoft.PowerShell.Commands.ImportModuleCommand
+ 
+
+PS C:\WINDOWS> Get-Module AzureRM
+
+PS C:\WINDOWS> Import-Module -Name AzureRM
+Import-Module : The specified module 'AzureRM' was not loaded because no valid module file was found in any module directory.
+At line:1 char:1
++ Import-Module -Name AzureRM
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ResourceUnavailable: (AzureRM:String) [Import-Module], FileNotFoundException
+    + FullyQualifiedErrorId : Modules_ModuleNotFound,Microsoft.PowerShell.Commands.ImportModuleCommand
+ 
+
+PS C:\WINDOWS> Import-Module -Name AzureRM
+
+
+PS C:\WINDOWS> Get-Module AzureRM
+
+ModuleType Version    Name                                ExportedCommands                                                                                                                                                          
+---------- -------    ----                                ----------------                                                                                                                                                          
+Script     4.2.1      AzureRM                             {Add-AzureAnalysisServicesAccount, Add-AzureKeyVaultCertificate, Add-AzureKeyVaultCertificateContact, Add-AzureKeyVaultKey...}                                            
+
+
+
+PS C:\WINDOWS>   'Create Azure resource group...' #| Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
+
+Create Azure resource group...
+New-AzureRmResourceGroup : Run Login-AzureRmAccount to login.
+At line:2 char:3
++   New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location ...
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidOperation: (:) [New-AzureRmResourceGroup], PSInvalidOperationException
+    + FullyQualifiedErrorId : InvalidOperation,Microsoft.Azure.Commands.ResourceManager.Cmdlets.Implementation.NewAzureResourceGroupCmdlet
+ 
+
+PS C:\WINDOWS> Login-AzureRmAccount
+
+
+Environment           : AzureCloud
+Account               : ngr@pfa.dk
+TenantId              : a7b4bea5-fce8-419e-942b-fe82836cee14
+SubscriptionId        : 5bf65d6c-4731-4b23-9a01-ffc28d822a2d
+SubscriptionName      : Visual Studio Enterprise
+CurrentStorageAccount : 
+
+
+
+
+PS C:\WINDOWS>   'Create Azure resource group...' #| Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
+
+Create Azure resource group...
+
+
+ResourceGroupName : SqlRecoveryRG
+Location          : westeurope
+ProvisioningState : Succeeded
+Tags              : 
+ResourceId        : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG
+
+
+
+
+PS C:\WINDOWS>   'Create Azure subnet...' #| Write-Verbose
+  $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
+    -Name SqlRecoverySubnet `
+    -AddressPrefix 192.168.1.0/24
+
+Create Azure subnet...
+
+PS C:\WINDOWS> $subnetConfig | gm
+
+
+   TypeName: Microsoft.Azure.Commands.Network.Models.PSSubnet
+
+Name                            MemberType Definition                                                                                                                          
+----                            ---------- ----------                                                                                                                          
+Equals                          Method     bool Equals(System.Object obj)                                                                                                      
+GetHashCode                     Method     int GetHashCode()                                                                                                                   
+GetType                         Method     type GetType()                                                                                                                      
+ShouldSerializeIpConfigurations Method     bool ShouldSerializeIpConfigurations()                                                                                              
+ToString                        Method     string ToString()                                                                                                                   
+AddressPrefix                   Property   string AddressPrefix {get;set;}                                                                                                     
+Etag                            Property   string Etag {get;set;}                                                                                                              
+Id                              Property   string Id {get;set;}                                                                                                                
+IpConfigurations                Property   System.Collections.Generic.List[Microsoft.Azure.Commands.Network.Models.PSIPConfiguration] IpConfigurations {get;set;}              
+IpConfigurationsText            Property   string IpConfigurationsText {get;}                                                                                                  
+Name                            Property   string Name {get;set;}                                                                                                              
+NetworkSecurityGroup            Property   Microsoft.Azure.Commands.Network.Models.PSNetworkSecurityGroup NetworkSecurityGroup {get;set;}                                      
+NetworkSecurityGroupText        Property   string NetworkSecurityGroupText {get;}                                                                                              
+ProvisioningState               Property   string ProvisioningState {get;set;}                                                                                                 
+ResourceNavigationLinks         Property   System.Collections.Generic.List[Microsoft.Azure.Commands.Network.Models.PSResourceNavigationLink] ResourceNavigationLinks {get;set;}
+ResourceNavigationLinksText     Property   string ResourceNavigationLinksText {get;}                                                                                           
+RouteTable                      Property   Microsoft.Azure.Commands.Network.Models.PSRouteTable RouteTable {get;set;}                                                          
+RouteTableText                  Property   string RouteTableText {get;}                                                                                                        
+
+
+
+PS C:\WINDOWS> 
+PS C:\WINDOWS>   'Create Azure virtual network...' #| Write-Verbose
+  $vnet = New-AzureRmVirtualNetwork `
+    -ResourceGroupName SqlRecoveryRG `
+    -Location 'WestEurope' `
+    -Name SqlRecoveryVnet `
+    -AddressPrefix 192.168.0.0/16 ` 
+    -Subnet $subnetConfig
+
+Create Azure virtual network...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+-Subnet : The term '-Subnet' is not recognized as the name of a cmdlet, function, script file, or operable program. Check the spelling of the name, or if a path was included, verify that the path is correct and try again.
+At line:7 char:5
++     -Subnet $subnetConfig
++     ~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (-Subnet:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+PS C:\WINDOWS>   'Create Azure virtual network...' #| Write-Verbose
+  $vnet = New-AzureRmVirtualNetwork `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
+    -Name SqlRecoveryVnet `
+    -AddressPrefix 192.168.0.0/16 `
+    -Subnet $subnetConfig
+
+Create Azure virtual network...
+New-AzureRmVirtualNetwork : Cannot validate argument on parameter 'ResourceGroupName'. The argument is null or empty. Provide an argument that is not null or empty, and then try the command again.
+At line:3 char:24
++     -ResourceGroupName $ResourceGroupName `
++                        ~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : InvalidData: (:) [New-AzureRmVirtualNetwork], ParameterBindingValidationException
+    + FullyQualifiedErrorId : ParameterArgumentValidationError,Microsoft.Azure.Commands.Network.NewAzureVirtualNetworkCommand
+ 
+
+PS C:\WINDOWS>   'Setting variables with common values...' #| Write-Verbose
+  [string]$ResourceGroupName = 'SqlRecoveryRG'
+  [string]$LocationName = 'WestEurope'
+  [string]$vmName = 'SqlRecoveryVM'
+
+Setting variables with common values...
+
+PS C:\WINDOWS>   'Create Azure resource group...' #| Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName SqlRecoveryRG -Location 'WestEurope'
+
+Create Azure resource group...
+
+
+ResourceGroupName : SqlRecoveryRG
+Location          : westeurope
+ProvisioningState : Succeeded
+Tags              : 
+ResourceId        : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG
+
+
+
+
+PS C:\WINDOWS>   'Create Azure subnet...' #| Write-Verbose  # Microsoft.Azure.Commands.Network.Models.PSSubnet
+  $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
+    -Name SqlRecoverySubnet `
+    -AddressPrefix 192.168.1.0/24
+
+Create Azure subnet...
+
+PS C:\WINDOWS>   'Create Azure virtual network...' #| Write-Verbose
+  $vnet = New-AzureRmVirtualNetwork `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
+    -Name SqlRecoveryVnet `
+    -AddressPrefix 192.168.0.0/16 `
+    -Subnet $subnetConfig
+
+Create Azure virtual network...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+
+PS C:\WINDOWS>   'Create Azure public IP address...' #| Write-Verbose
+  $pip = New-AzureRmPublicIpAddress ` 
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' ` 
+    -AllocationMethod Static `
+    -Name myPublicIPAddress
+
+Create Azure public IP address...
+cmdlet New-AzureRmPublicIpAddress at command pipeline position 1
+Supply values for the following parameters:
+(Type !? for Help.)
+ResourceGroupName: SqlRecoveryRG
+AllocationMethod: 
+PS C:\WINDOWS>   'Create Azure public IP address...' #| Write-Verbose
+  $pip = New-AzureRmPublicIpAddress `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
+    -AllocationMethod Static `
+    -Name myPublicIPAddress
+
+Create Azure public IP address...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+
+PS C:\WINDOWS>   'Create Azure network interface card (NIC)...' #| Write-Verbose
+  $nic = New-AzureRmNetworkInterface `
+    -ResourceGroupName $ResourceGroupName `
+    -Location 'WestEurope' `
+    -Name myNic `
+    -SubnetId $vnet.Subnets[0].Id `
+    -PublicIpAddressId $pip.Id
+
+Create Azure network interface card (NIC)...
+WARNING: The output object type of this cmdlet will be modified in a future release.
+
+PS C:\WINDOWS>   'Create Azure Network Security Group (NSG):'
+  'Create Azure security rule...'
+  $nsgRule = New-AzureRmNetworkSecurityRuleConfig `
+    -Name myNSGRule `
+    -Protocol Tcp `
+    -Direction Inbound `
+    -Priority 1000 `
+    -SourceAddressPrefix * `
+    -SourcePortRange * `
+    -DestinationAddressPrefix * `
+    -DestinationPortRange 3389 `
+    -Access Allow
+
+Create Azure Network Security Group (NSG):
+Create Azure security rule...
+
+PS C:\WINDOWS>   'Create Azure Network Security Group...'
+  Set-AzureRmVirtualNetworkSubnetConfig `
+    -Name mySubnet `
+    -VirtualNetwork $vnet `
+    -NetworkSecurityGroup $nsg `
+    -AddressPrefix 192.168.1.0/24
+
+Create Azure Network Security Group...
+Set-AzureRmVirtualNetworkSubnetConfig : Subnet with the specified name does not exist
+At line:2 char:3
++   Set-AzureRmVirtualNetworkSubnetConfig `
++   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : CloseError: (:) [Set-AzureRmVirtualNetworkSubnetConfig], ArgumentException
+    + FullyQualifiedErrorId : Microsoft.Azure.Commands.Network.SetAzureVirtualNetworkSubnetConfigCommand
+ 
+
+PS C:\WINDOWS>   'Create Azure Network Security Group...'
+  Set-AzureRmVirtualNetworkSubnetConfig `
+    -Name SqlRecoverySubnet `
+    -VirtualNetwork $vnet `
+    -NetworkSecurityGroup $nsg `
+    -AddressPrefix 192.168.1.0/24
+
+Create Azure Network Security Group...
+
+
+Name                   : SqlRecoveryVnet
+ResourceGroupName      : SqlRecoveryRG
+Location               : westeurope
+Id                     : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet
+Etag                   : W/"3e67ceaf-7627-4897-8a4e-29132a900ad3"
+ResourceGuid           : 42945d72-8175-4faf-8192-c3601a8dc884
+ProvisioningState      : Succeeded
+Tags                   : 
+AddressSpace           : {
+                           "AddressPrefixes": [
+                             "192.168.0.0/16"
+                           ]
+                         }
+DhcpOptions            : {}
+Subnets                : [
+                           {
+                             "Name": "SqlRecoverySubnet",
+                             "Etag": "W/\"3e67ceaf-7627-4897-8a4e-29132a900ad3\"",
+                             "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet/subnets/SqlRecoverySubnet",
+                             "AddressPrefix": "192.168.1.0/24",
+                             "IpConfigurations": [],
+                             "ResourceNavigationLinks": [],
+                             "ProvisioningState": "Succeeded"
+                           }
+                         ]
+VirtualNetworkPeerings : []
+
+
+
+
+PS C:\WINDOWS>   'Update Azure virtual network...'
+  Set-AzureRmVirtualNetwork -VirtualNetwork $vnet
+  '/NSG created.'
+
+Update Azure virtual network...
+
+
+Name                   : SqlRecoveryVnet
+ResourceGroupName      : SqlRecoveryRG
+Location               : westeurope
+Id                     : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet
+Etag                   : W/"eb257bc5-f009-4025-9fbe-c36c4b8ded06"
+ResourceGuid           : 42945d72-8175-4faf-8192-c3601a8dc884
+ProvisioningState      : Succeeded
+Tags                   : 
+AddressSpace           : {
+                           "AddressPrefixes": [
+                             "192.168.0.0/16"
+                           ]
+                         }
+DhcpOptions            : {
+                           "DnsServers": []
+                         }
+Subnets                : [
+                           {
+                             "Name": "SqlRecoverySubnet",
+                             "Etag": "W/\"eb257bc5-f009-4025-9fbe-c36c4b8ded06\"",
+                             "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/virtualNetworks/SqlRecoveryVnet/subnets/SqlRecoverySubnet",
+                             "AddressPrefix": "192.168.1.0/24",
+                             "IpConfigurations": [
+                               {
+                                 "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2d/resourceGroups/SqlRecoveryRG/providers/Microsoft.Network/networkInterfaces/myNic/ipConfigurations/ipconfig1"
+                               }
+                             ],
+                             "ResourceNavigationLinks": [],
+                             "ProvisioningState": "Succeeded"
+                           }
+                         ]
+VirtualNetworkPeerings : []
+
+/NSG created.
+
+
+
+PS C:\WINDOWS>   'Create Azure virtual machine:'
+  'Get credentials for admin on vm...'
+  $cred = Get-Credential
+
+Create Azure virtual machine:
+Get credentials for admin on vm...
+cmdlet Get-Credential at command pipeline position 1
+Supply values for the following parameters:
+
+PS C:\WINDOWS>   'Create initial configuration...'
+  $vm = New-AzureRmVMConfig -VMName myVM -VMSize Standard_DS2
+
+Create initial configuration...
+
+PS C:\WINDOWS>   'Add OS information...'
+  $vm = Set-AzureRmVMOperatingSystem `
+    -VM $vm `
+    -Windows `
+    -ComputerName myVM `
+    -Credential $cred `
+    -ProvisionVMAgent -EnableAutoUpdate
+
+Add OS information...
+
+PS C:\WINDOWS>   'Add image information...'
+  $vm = Set-AzureRmVMSourceImage `
+    -VM $vm `
+    -PublisherName MicrosoftWindowsServer `
+    -Offer WindowsServer `
+    -Skus 2016-Datacenter `
+    -Version latest
+
+Add image information...
+
+PS C:\WINDOWS>   'Add OS disk settings...'
+  $vm = Set-AzureRmVMOSDisk `
+    -VM $vm `
+    -Name myOsDisk `
+    -DiskSizeInGB 128 `
+    -CreateOption FromImage `
+    -Caching ReadWrite
+
+Add OS disk settings...
+
+PS C:\WINDOWS>   'Add NIC...'
+  $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
+
+Add NIC...
+
+PS C:\WINDOWS>   'Create virtual machine...'
+  New-AzureRmVM -ResourceGroupName $ResourceGroupName -Location $LocationName -VM $vm
+  '/vm created.'
+
+Create virtual machine...
+WARNING: Since the VM is created using premium storage, existing standard storage account, sandboxdiag585, is used for boot diagnostics.
+
+RequestId IsSuccessStatusCode StatusCode ReasonPhrase
+--------- ------------------- ---------- ------------
+                         True         OK OK          
+/vm created.
+
+
+
+PS C:\WINDOWS> 
