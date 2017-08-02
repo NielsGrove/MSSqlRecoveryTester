@@ -26,7 +26,7 @@ Set-StrictMode -Version Latest
 
 #region infrastructure
 
-function New-AzureSsdb {
+function New-AzureVm {
 <#
 .DESCRIPTION
   Sandbox for basic virtual SQL Server Database Engine server in Azure
@@ -42,6 +42,7 @@ function New-AzureSsdb {
 .NOTES
   2017-07-31  (Niels Grove-Rasmussen) Function created to implement sandbox inspired from Microsoft tutorial.
   2017-08-01  (Niels Grove-Rasmussen) Function can create one Azure vm wo/SSDB. Can begin parameterisation.
+  2017-08-02  (Niels Grove-Rasmussen) Function renamed to New-AzureVm. SSDB or other application installation will be in seperate functions.
 #>
 [CmdletBinding()]
 [OutputType([void])]
@@ -52,7 +53,7 @@ Param(
 
 Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
-  "{0:s}Z  ::  NewAzureSsdb( '<param1>' )" -f [System.DateTime]::UtcNow | Write-Verbose
+  "{0:s}Z  ::  New-AzureVm( '<param1>' )" -f [System.DateTime]::UtcNow | Write-Verbose
 
   Import-Module -Name AzureRM
 
@@ -185,7 +186,7 @@ End {
   [string]$Message = "New-AzureSsdb finished with success. Duration = $($mywatch.Elapsed.ToString()). [hh:mm:ss.ddd]"
   "{0:s}Z  $Message" -f [System.DateTime]::UtcNow | Write-Output
 }
-}  # New-AzureSsdb()
+}  # New-AzureVm()
 
 
 #endregion infrastructure
@@ -236,4 +237,4 @@ End {
 ###  INVOKE  ###
 
 Clear-Host
-New-AzureSsdb -Verbose #-Debug
+New-AzureVm -Verbose #-Debug
