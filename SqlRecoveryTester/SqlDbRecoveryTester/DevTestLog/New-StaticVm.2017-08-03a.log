@@ -1,0 +1,173 @@
+PS E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester> E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRecovery.test.ps1
+
+
+Environment           : AzureCloud
+Account               : ngr@pfa.dk
+TenantId              : a7b4bea5-fce8-419e-942b-fe82836cee14
+SubscriptionId        : 5bf65d6c-4731-4b23-9a01-ffc28d822a2d
+SubscriptionName      : Visual Studio Enterprise
+CurrentStorageAccount : 
+
+[WARNING] The output object type of this cmdlet will be modified in a future release.
+[ERROR] The variable '$AzureVm' cannot be retrieved because it has not been set.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:286 char:11
+[ERROR] +     -Name $AzureVm.PublicIpAddressName
+[ERROR] +           ~~~~~~~~
+[ERROR]     + CategoryInfo          : InvalidOperation: (AzureVm:String) [], RuntimeEx 
+[ERROR]    ception
+[ERROR]     + FullyQualifiedErrorId : VariableIsUndefined
+[ERROR]  
+[ERROR] The variable '$AzureVm' cannot be retrieved because it has not been set.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:291 char:11
+[ERROR] +     -Name $AzureVm.NicName `
+[ERROR] +           ~~~~~~~~
+[ERROR]     + CategoryInfo          : InvalidOperation: (AzureVm:String) [], RuntimeEx 
+[ERROR]    ception
+[ERROR]     + FullyQualifiedErrorId : VariableIsUndefined
+[ERROR]  
+[ERROR] The variable '$AzureVm' cannot be retrieved because it has not been set.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:298 char:11
+[ERROR] +     -Name $AzureVm.NsgRuleName `
+[ERROR] +           ~~~~~~~~
+[ERROR]     + CategoryInfo          : InvalidOperation: (AzureVm:String) [], RuntimeEx 
+[ERROR]    ception
+[ERROR]     + FullyQualifiedErrorId : VariableIsUndefined
+[ERROR]  
+[ERROR] The variable '$AzureVm' cannot be retrieved because it has not been set.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:311 char:11
+[ERROR] +     -Name $AzureVm.NsgName `
+[ERROR] +           ~~~~~~~~
+[ERROR]     + CategoryInfo          : InvalidOperation: (AzureVm:String) [], RuntimeEx 
+[ERROR]    ception
+[ERROR]     + FullyQualifiedErrorId : VariableIsUndefined
+[ERROR]  
+
+AddressSpace               : Microsoft.Azure.Commands.Network.Models.PSAddressS
+                             pace
+DhcpOptions                : Microsoft.Azure.Commands.Network.Models.PSDhcpOpti
+                             ons
+Subnets                    : {Subnet_Static}
+VirtualNetworkPeerings     : {}
+ProvisioningState          : Succeeded
+AddressSpaceText           : {
+                               "AddressPrefixes": [
+                                 "192.168.0.0/16"
+                               ]
+                             }
+DhcpOptionsText            : {}
+SubnetsText                : [
+                               {
+                                 "Name": "Subnet_Static",
+                                 "Etag": "W/\"e60c85ae-3807-4c2b-8147-aa1c89dce
+                             194\"",
+                                 "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-
+                             ffc28d822a2d/resourceGroups/RG_Static/providers/Mi
+                             crosoft.Network/virtualNetworks/SqlRecoveryVnet/su
+                             bnets/Subnet_Static",
+                                 "AddressPrefix": "192.168.1.0/24",
+                                 "IpConfigurations": [],
+                                 "ResourceNavigationLinks": [],
+                                 "ProvisioningState": "Succeeded"
+                               }
+                             ]
+VirtualNetworkPeeringsText : []
+ResourceGroupName          : RG_Static
+Location                   : westeurope
+ResourceGuid               : 59a752f4-cab2-4deb-b7ab-5026e15f3b84
+Type                       : Microsoft.Network/virtualNetworks
+Tag                        : 
+TagsTable                  : 
+Name                       : SqlRecoveryVnet
+Etag                       : W/"e60c85ae-3807-4c2b-8147-aa1c89dce194"
+Id                         : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2
+                             d/resourceGroups/RG_Static/providers/Microsoft.Net
+                             work/virtualNetworks/SqlRecoveryVnet
+
+
+AddressSpace               : Microsoft.Azure.Commands.Network.Models.PSAddressS
+                             pace
+DhcpOptions                : Microsoft.Azure.Commands.Network.Models.PSDhcpOpti
+                             ons
+Subnets                    : {Subnet_Static}
+VirtualNetworkPeerings     : {}
+ProvisioningState          : Succeeded
+AddressSpaceText           : {
+                               "AddressPrefixes": [
+                                 "192.168.0.0/16"
+                               ]
+                             }
+DhcpOptionsText            : {
+                               "DnsServers": []
+                             }
+SubnetsText                : [
+                               {
+                                 "Name": "Subnet_Static",
+                                 "Etag": "W/\"b1154efe-36cc-4a7b-9236-54e6739b2
+                             fb1\"",
+                                 "Id": "/subscriptions/5bf65d6c-4731-4b23-9a01-
+                             ffc28d822a2d/resourceGroups/RG_Static/providers/Mi
+                             crosoft.Network/virtualNetworks/SqlRecoveryVnet/su
+                             bnets/Subnet_Static",
+                                 "AddressPrefix": "192.168.1.0/24",
+                                 "IpConfigurations": [],
+                                 "ResourceNavigationLinks": [],
+                                 "ProvisioningState": "Succeeded"
+                               }
+                             ]
+VirtualNetworkPeeringsText : []
+ResourceGroupName          : RG_Static
+Location                   : westeurope
+ResourceGuid               : 59a752f4-cab2-4deb-b7ab-5026e15f3b84
+Type                       : Microsoft.Network/virtualNetworks
+Tag                        : 
+TagsTable                  : 
+Name                       : SqlRecoveryVnet
+Etag                       : W/"b1154efe-36cc-4a7b-9236-54e6739b2fb1"
+Id                         : /subscriptions/5bf65d6c-4731-4b23-9a01-ffc28d822a2
+                             d/resourceGroups/RG_Static/providers/Microsoft.Net
+                             work/virtualNetworks/SqlRecoveryVnet
+
+cmdlet Get-Credential at command pipeline position 1
+Supply values for the following parameters:
+Credential: [ERROR] The variable '$AzureVm' cannot be retrieved because it has not been set.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:346 char:11
+[ERROR] +     -Name $AzureVm.DiskName `
+[ERROR] +           ~~~~~~~~
+[ERROR]     + CategoryInfo          : InvalidOperation: (AzureVm:String) [], RuntimeEx 
+[ERROR]    ception
+[ERROR]     + FullyQualifiedErrorId : VariableIsUndefined
+[ERROR]  
+[ERROR] The property 'Id' cannot be found on this object. Verify that the property exis
+[ERROR] ts.
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:351 char:3
+[ERROR] +   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
+[ERROR] +   ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ERROR]     + CategoryInfo          : NotSpecified: (:) [], PropertyNotFoundException
+[ERROR]     + FullyQualifiedErrorId : PropertyNotFoundStrict
+[ERROR]  
+[WARNING] Since the VM is created using premium storage, existing standard storage account, sandboxdiag585, is used for boot diagnostics.
+[ERROR] New-AzureRmVM : Required parameter 'networkProfile' is missing (null).
+[ERROR] ErrorCode: InvalidParameter
+[ERROR] ErrorMessage: Required parameter 'networkProfile' is missing (null).
+[ERROR] StatusCode: 400
+[ERROR] ReasonPhrase: Bad Request
+[ERROR] OperationID : f46c85f4-cd3e-4986-b970-a8d70e2eda0d
+[ERROR] At E:\GitHub\MSSqlRecoveryTester\SqlRecoveryTester\SqlDbRecoveryTester\SqlDbRec
+[ERROR] overy.test.ps1:354 char:5
+[ERROR] +   { New-AzureRmVM -ResourceGroupName RG_Static -Location WestEurope - ...
+[ERROR] +     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+[ERROR]     + CategoryInfo          : CloseError: (:) [New-AzureRmVM], ComputeCloudExc 
+[ERROR]    eption
+[ERROR]     + FullyQualifiedErrorId : Microsoft.Azure.Commands.Compute.NewAzureVMComma 
+[ERROR]    nd
+[ERROR]  
+
+
+
+The program 'SqlDbRecovery.test.ps1: PowerShell Script' has exited with code 0 (0x0).
