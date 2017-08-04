@@ -65,16 +65,23 @@ Begin {
   else
   { throw 'PowerShell module AzureRM is NOT imported!' }
 
-  # ToDo : Put output in variable
+  #'Log in to Azure...' | Write-Verbose
+  #Login-AzureRmAccount
   'Test if already logged in Azure...' | Write-Verbose
   try
-  { Get-AzureRmContext -ErrorAction Continue }
+  { $AzureContext = Get-AzureRmContext -ErrorAction Continue }
   catch [System.Management.Automation.PSInvalidOperationException] {
     'Log in to Azure...' | Write-Verbose
-    Login-AzureRmAccount
+    $AzureContext = Login-AzureRmAccount
   }
   catch
   { throw $_.Exception }
+  if ($AzureContext.Account -eq $null) {
+    'Log in to Azure...' | Write-Verbose
+    $AzureContext = Login-AzureRmAccount
+  }
+  else
+  { "OK - Logged in Azure as '$($AzureContext.Account)'." | Write-Verbose }
 }
 
 Process {
@@ -88,59 +95,49 @@ Process {
 
   'Setting variables with common values...' | Write-Verbose
   [psobject]$AzureVm = New-Object -TypeName PSObject -Property (@{
-    ResourceGroupName = 'RG_' + $AzureRgId;
+    ResourceGroupName = 'TesterRG_' + $AzureRgId;
     LocationName = 'WestEurope';
-    SubnetName = 'Subnet_' + $AzureRgId;
-    PublicIpAddressName= 'PublicIp_' + $AzureRgId;
-    NicName = 'Nic_' + $AzureRgId;
-    NsgRuleName = 'NsgRule_' + $AzureRgId;
-    NsgName = 'Nsg_' + $AzureRgId;
-    DiskName = 'OsDisk_' + $AzureRgId;
-    Name = 'VM_' + $AzureRgId
+    SubnetName = 'TesterSubnet';
+    PublicIpAddressName= 'TesterPublicIp';
+    NicName = 'TesterNic';
+    NsgRuleName = 'TesterNsgRule';
+    NsgName = 'TesterNsg';
+    OsDiskName = 'TesterOsDisk';
+    Name = 'TesterVM'
   })
   $AzureVm.PSObject.TypeNames.Insert(0, 'Vm.Azure')
 
-  'Test length of virtual machine name...' | Write-Verbose
-  if (VM_Static.Length -gt 15)
-  { throw "The name of a virtual machine is greater than 15. Current name '$(VM_Static)' is $(VM_Static.Length) characters long." }
-  else
-  { "OK - The length of the name to the virtual machine '$(VM_Static)' is $(VM_Static.Length) characters, which is less than or equal to 15." | Write-Verbose }
-
   'Test if Azure resource group exists...' | Write-Verbose
-  Get-AzureRmResourceGroup -Name $AzureVm.ResourceGroupName -ErrorVariable NotPresent -ErrorAction SilentlyContinue
+  Get-AzureRmResourceGroup -Name RG_Static -ErrorVariable NotPresent -ErrorAction SilentlyContinue
   if ($NotPresent)
-  { "OK - Azure resource group '$(RG_Static)' does not exist." | Write-Verbose }
+  { "OK - Azure resource group 'RG_Static' does not exist." | Write-Verbose }
   else
-  { throw "The Azure resource group '$(RG_Static)' does already exist." }
+  { throw "The Azure resource group 'RG_Static' does already exist." }
 
-  "{0:s}Z  Create Azure resource group..." -f [System.DateTime]::UtcNow | Write-Verbose
-  $AzureResourceGroup = New-AzureRmResourceGroup -ResourceGroupName RG_Static -Location WestEurope
-  if ($AzureResourceGroup.ProvisioningState -ceq 'Succeeded')
-  { "'OK - Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'." | Write-Verbose }
-  else
-  { throw "Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'. 'Succeeded' was expected." }
+  'Create Azure resource group...' | Write-Verbose
+  New-AzureRmResourceGroup -ResourceGroupName $AzureVm.ResourceGroupName -Location $AzureVm.LocationName
 
   'Create Azure subnet...' | Write-Verbose
   $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig `
-    -Name Subnet_Static `
+    -Name $AzureVm.SubnetName `
     -AddressPrefix 192.168.1.0/24
   'Create Azure virtual network...' | Write-Verbose
   $vnet = New-AzureRmVirtualNetwork `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
+    -ResourceGroupName $AzureVm.ResourceGroupName `
+    -Location $AzureVm.LocationName `
     -Name SqlRecoveryVnet `
     -AddressPrefix 192.168.0.0/16 `
     -Subnet $subnetConfig
   'Create Azure public IP address...' | Write-Verbose
   $pip = New-AzureRmPublicIpAddress `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
+    -ResourceGroupName $AzureVm.ResourceGroupName `
+    -Location $AzureVm.LocationName `
     -AllocationMethod Static `
     -Name $AzureVm.PublicIpAddressName
   'Create Azure network interface card (NIC)...' | Write-Verbose
   $nic = New-AzureRmNetworkInterface `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
+    -ResourceGroupName $AzureVm.ResourceGroupName `
+    -Location $AzureVm.LocationName `
     -Name $AzureVm.NicName `
     -SubnetId $vnet.Subnets[0].Id `
     -PublicIpAddressId $pip.Id
@@ -159,39 +156,32 @@ Process {
     -Access Allow
   'Create Azure Network Security Group...' | Write-Verbose
   $nsg= New-AzureRmNetworkSecurityGroup `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
+    -ResourceGroupName $AzureVm.ResourceGroupName `
+    -Location $AzureVm.LocationName `
     -Name $AzureVm.NsgName `
     -SecurityRules $nsgRule
-  # ToDo : Put output in variable
-  # ToDo : Test for ProvisioningState : Succeeded
   'Add NSG to subnet...' | Write-Verbose
   Set-AzureRmVirtualNetworkSubnetConfig `
-    -Name Subnet_Static `
+    -Name $AzureVm.SubnetName `
     -VirtualNetwork $vnet `
     -NetworkSecurityGroup $nsg `
     -AddressPrefix 192.168.1.0/24
-  # ToDo : Put output in variable
-  # ToDo : Test for ProvisioningState : Succeeded
   'Update Azure virtual network...' | Write-Verbose
   Set-AzureRmVirtualNetwork -VirtualNetwork $vnet
   '/NSG created.' | Write-Verbose
 
+  'Create Azure virtual machine:' | Write-Verbose
   'Get credentials for admin on vm...' | Write-Verbose
   $cred = Get-Credential
-
-  'Create Azure virtual machine:' | Write-Verbose
   'Create initial configuration...' | Write-Verbose
-  [string]$VmName = VM_Static
-  ")) Short variable content = 'VM_Static'." | Write-Verbose
   $vm = New-AzureRmVMConfig `
-    -VMName VM_Static `
+    -VMName $AzureVm.Name `
     -VMSize Standard_DS2
   'Add OS information...' | Write-Verbose
   $vm = Set-AzureRmVMOperatingSystem `
     -VM $vm `
     -Windows `
-    -ComputerName VM_Static `
+    -ComputerName $AzureVm.Name `
     -Credential $cred `
     -ProvisionVMAgent -EnableAutoUpdate
   'Add image information...' | Write-Verbose
@@ -204,20 +194,17 @@ Process {
   'Add OS disk settings...' | Write-Verbose
   $vm = Set-AzureRmVMOSDisk `
     -VM $vm `
-    -Name $AzureVm.DiskName `
+    -Name $AzureVm.OsDiskName `
     -DiskSizeInGB 128 `
     -CreateOption FromImage `
     -Caching ReadWrite
   'Add NIC...' | Write-Verbose
   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
-  "Create virtual machine 'VM_Static'..." | Write-Verbose
-  try
-  { New-AzureRmVM -ResourceGroupName RG_Static -Location WestEurope -VM $vm }
-  catch 
-  { throw $_ }
+  'Create virtual machine...' | Write-Verbose
+  New-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Location $AzureVm.LocationName -VM $vm
   '/virtual machine created.' | Write-Verbose
 
-  #ToDo: Install SSDB (w/DSC) in another function
+  #ToDo: Install SSDB (w/DSC)
 }
 
 End {
@@ -235,6 +222,9 @@ function New-StaticVm {
 .NOTES
   2017-08-03 (Niels Grove-Rasmussen) Function created to hunt error on too long computername.
 #>
+[CmdletBinding()]
+[OutputType([void])]
+Param()
 
   Import-Module -Name AzureRM
 
@@ -247,13 +237,19 @@ function New-StaticVm {
 
   'Test if already logged in Azure...' | Write-Verbose
   try
-  { Get-AzureRmContext -ErrorAction Continue }
+  { $AzureContext = Get-AzureRmContext -ErrorAction Continue }
   catch [System.Management.Automation.PSInvalidOperationException] {
     'Log in to Azure...' | Write-Verbose
-    Login-AzureRmAccount
+    $AzureContext = Login-AzureRmAccount
   }
   catch
   { throw $_.Exception }
+  if ($AzureContext.Account -eq $null) {
+    'Log in to Azure...' #| Write-Verbose
+    $AzureContext = Login-AzureRmAccount
+  }
+  else
+  { "OK - Logged in Azure as '$($AzureContext.Account)'." | Write-Verbose }
 
   'Test if Azure resource group exists...' | Write-Verbose
   Get-AzureRmResourceGroup -Name RG_Static -ErrorVariable NotPresent -ErrorAction SilentlyContinue
@@ -269,13 +265,14 @@ function New-StaticVm {
   else
   { throw "Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'. 'Succeeded' was expected." }
 
+  'Create Azure virtual network:' | Write-Verbose
   'Create Azure subnet...' | Write-Verbose
   $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig -Name Subnet_Static -AddressPrefix 192.168.1.0/24
   'Create Azure virtual network...' | Write-Verbose
   $vnet = New-AzureRmVirtualNetwork `
     -ResourceGroupName RG_Static `
     -Location WestEurope `
-    -Name SqlRecoveryVnet `
+    -Name Vnet_Static `
     -AddressPrefix 192.168.0.0/16 `
     -Subnet $subnetConfig
   'Create Azure public IP address...' | Write-Verbose
@@ -283,19 +280,19 @@ function New-StaticVm {
     -ResourceGroupName RG_Static `
     -Location WestEurope `
     -AllocationMethod Static `
-    -Name $AzureVm.PublicIpAddressName
+    -Name PublicIp_Static
   'Create Azure network interface card (NIC)...' | Write-Verbose
   $nic = New-AzureRmNetworkInterface `
     -ResourceGroupName RG_Static `
     -Location WestEurope `
-    -Name $AzureVm.NicName `
+    -Name Nic_Static `
     -SubnetId $vnet.Subnets[0].Id `
     -PublicIpAddressId $pip.Id
 
   'Create Azure Network Security Group (NSG):' | Write-Verbose
   'Create Azure security rule...' | Write-Verbose
   $nsgRule = New-AzureRmNetworkSecurityRuleConfig `
-    -Name $AzureVm.NsgRuleName `
+    -Name NsgRule_Static `
     -Protocol Tcp `
     -Direction Inbound `
     -Priority 1000 `
@@ -308,7 +305,7 @@ function New-StaticVm {
   $nsg= New-AzureRmNetworkSecurityGroup `
     -ResourceGroupName RG_Static `
     -Location WestEurope `
-    -Name $AzureVm.NsgName `
+    -Name Nsg_Static `
     -SecurityRules $nsgRule
   'Add NSG to subnet...' | Write-Verbose
   Set-AzureRmVirtualNetworkSubnetConfig `
@@ -325,7 +322,7 @@ function New-StaticVm {
 
   'Create Azure virtual machine:' | Write-Verbose
   'Create initial configuration...' | Write-Verbose
-  $vm = New-AzureRmVMConfig -VMName VM_Static -VMSize Standard_DS2
+  $vm = New-AzureRmVMConfig -VMName VM_Static -VMSize Standard_D1
   'Add OS information...' | Write-Verbose
   $vm = Set-AzureRmVMOperatingSystem `
     -VM $vm `
@@ -343,15 +340,18 @@ function New-StaticVm {
   'Add OS disk settings...' | Write-Verbose
   $vm = Set-AzureRmVMOSDisk `
     -VM $vm `
-    -Name $AzureVm.DiskName `
+    -Name OsDisk_Static `
     -DiskSizeInGB 128 `
     -CreateOption FromImage `
     -Caching ReadWrite
   'Add NIC...' | Write-Verbose
   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
+
+  $vm | Out-GridView
+
   "Create virtual machine 'VM_Static'..." | Write-Verbose
   try
-  { New-AzureRmVM -ResourceGroupName RG_Static -Location WestEurope -VM $vm }
+  { New-AzureRmVM -ResourceGroupName RG_Static -Location WestEurope -VM $vm -Verbose -Debug }
   catch 
   { throw $_ }
   '/virtual machine created.' | Write-Verbose
@@ -406,6 +406,6 @@ End {
 
 Clear-Host
 
-New-StaticVm -Verbose #-Debug
+New-AzureVm -Verbose #-Debug
 
-#New-AzureVm -Verbose #-Debug
+#New-StaticVm -Verbose #-Debug
