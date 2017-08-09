@@ -216,6 +216,21 @@ Process {
   { throw "Azure vm status code: '$($AzureVmResult.StatusCode)'. 'OK' was expected." }
   '/virtual machine created.' | Write-Verbose
 
+  'Stop virtual machine...' | Write-Verbose
+  $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force -StayProvisioned
+  #$StopVmResult = Stop-AzureRmVM -ResourceGroupName 'TesterRG_xhCU3jMZR8a' -Name 'TesterVM' -Force -StayProvisioned
+  if ($StopVmResult.Status -ceq 'Succeeded')
+  { "'OK - Azure virtual machine stop status : '$($StopVmResult.Status)'." | Write-Verbose }
+  else
+  { throw "Azure virtual machine stop status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
+  'Deallocate virtual machine...' | Write-Verbose
+  $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force
+  if ($StopVmResult.Status -ceq 'Succeeded')
+  { "'OK - Azure virtual machine deallocate status : '$($StopVmResult.Status)'." | Write-Verbose }
+  else
+  { throw "Azure virtual machine deallocate status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
+
+
   #ToDo: Install SSDB (w/DSC) in another function
 }
 
@@ -421,3 +436,9 @@ Clear-Host
 New-AzureVm -Verbose #-Debug
 
 #New-StaticVm -Verbose #-Debug
+
+
+#Remove-AzureRmResourceGroup -Name 'TesterRG_7WpKGqg4YMb' -Verbose #-Force
+
+# Log out of Azure - DOES NOT WORK
+#Login-AzureRmAccount -ErrorAction Stop
