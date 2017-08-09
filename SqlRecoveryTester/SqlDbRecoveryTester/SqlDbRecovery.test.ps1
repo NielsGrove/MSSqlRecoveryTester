@@ -44,6 +44,7 @@ function New-AzureVm {
   2017-08-01  (Niels Grove-Rasmussen) Function can create one Azure vm wo/SSDB. Can begin parameterisation.
   2017-08-02  (Niels Grove-Rasmussen) Function renamed to New-AzureVm. SSDB or other application installation will be in seperate functions.
   2017-08-03  (Niels Grove-Rasmussen) Dynamic resource group name for scalability. Existince of RG test added.
+  2017-08-09  (Niels Grove-Rasmussen) Stop and Deallocate virtual machine added.
 #>
 [CmdletBinding()]
 [OutputType([void])]
@@ -54,7 +55,7 @@ Param(
 
 Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
-  "{0:s}Z  ::  New-AzureVm( '<param1>' )" -f [System.DateTime]::UtcNow | Write-Verbose
+  "{0:s}Z  ::  New-AzureVm()" -f [System.DateTime]::UtcNow | Write-Verbose
 
   Import-Module -Name AzureRM
 
@@ -111,9 +112,10 @@ Process {
   else
   { throw "The Azure resource group '$($AzureVm.ResourceGroupName)' does already exist." }
   "{0:s}Z  Create Azure resource group '$($AzureVm.ResourceGroupName)'..." -f [System.DateTime]::UtcNow | Write-Verbose
-  $AzureResourceGroup = New-AzureRmResourceGroup -ResourceGroupName $AzureVm.ResourceGroupName -Location $AzureVm.LocationName
+  $RgTags = @{ MS_Description = 'Really good prose description.'; PFA_System = 'mitPFA' }
+  $AzureResourceGroup = New-AzureRmResourceGroup -Name $AzureVm.ResourceGroupName -Location $AzureVm.LocationName -Tag $RgTags
   if ($AzureResourceGroup.ProvisioningState -ceq 'Succeeded')
-  { "'OK - Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'." | Write-Verbose }
+  { "OK - Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'." | Write-Verbose }
   else
   { throw "Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'. 'Succeeded' was expected." }
 
@@ -173,12 +175,13 @@ Process {
   'Update Azure virtual network...' | Write-Verbose
   $AzureVNetResult = Set-AzureRmVirtualNetwork -VirtualNetwork $vnet
   if ($AzureVNetResult.ProvisioningState -ceq 'Succeeded')
-  { "'OK - Azure vnet provisioning state : '$($AzureVNetResult.ProvisioningState)'." | Write-Verbose }
+  { "OK - Azure vnet provisioning state : '$($AzureVNetResult.ProvisioningState)'." | Write-Verbose }
   else
   { throw "Azure vnet provisioning state : '$($AzureVNetResult.ProvisioningState)'. 'Succeeded' was expected." }
   '/NSG created.' | Write-Verbose
 
   'Create Azure virtual machine:' | Write-Verbose
+  $vmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
   'Get credentials for admin on vm...' | Write-Verbose
   $cred = Get-Credential
   'Create initial configuration...' | Write-Verbose
@@ -208,25 +211,25 @@ Process {
     -Caching ReadWrite
   'Add NIC...' | Write-Verbose
   $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
-  'Create virtual machine...' | Write-Verbose
+  "{0:s}Z  Create virtual machine..." -f [System.DateTime]::UtcNow | Write-Verbose
   $AzureVmResult = New-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Location $AzureVm.LocationName -VM $vm
   if ($AzureVmResult.StatusCode -ceq 'OK')
-  { "'OK - Azure vm status code : '$($AzureVmResult.StatusCode)'." | Write-Verbose }
+  { "OK - Azure vm status code : '$($AzureVmResult.StatusCode)'." | Write-Verbose }
   else
   { throw "Azure vm status code: '$($AzureVmResult.StatusCode)'. 'OK' was expected." }
-  '/virtual machine created.' | Write-Verbose
+  $vmStopWatch.Stop
+  "{0:s}Z OK - virtual machine created. Duration = $($vmStopWatch.Elapsed.ToString()). [hh:mm:ss.ddd]" -f [System.DateTime]::UtcNow | Write-Verbose
 
-  'Stop virtual machine...' | Write-Verbose
+  "{0:s}Z Stop virtual machine..." -f [System.DateTime]::UtcNow | Write-Verbose
   $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force -StayProvisioned
-  #$StopVmResult = Stop-AzureRmVM -ResourceGroupName 'TesterRG_xhCU3jMZR8a' -Name 'TesterVM' -Force -StayProvisioned
   if ($StopVmResult.Status -ceq 'Succeeded')
-  { "'OK - Azure virtual machine stop status : '$($StopVmResult.Status)'." | Write-Verbose }
+  { "OK - Azure virtual machine stop status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
   { throw "Azure virtual machine stop status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
   'Deallocate virtual machine...' | Write-Verbose
   $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force
   if ($StopVmResult.Status -ceq 'Succeeded')
-  { "'OK - Azure virtual machine deallocate status : '$($StopVmResult.Status)'." | Write-Verbose }
+  { "OK - Azure virtual machine deallocate status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
   { throw "Azure virtual machine deallocate status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
 
