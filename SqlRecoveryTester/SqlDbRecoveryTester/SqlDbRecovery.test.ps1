@@ -244,148 +244,82 @@ End {
 }
 }  # New-AzureVm()
 
+#region Test
 
-function New-StaticVm {
+function Test-AzureVmStart {
 <#
 .DESCRIPTION
-  Created Azure VM with static parameters for basic test
+  Test Azure virtual machine allocation and start
+.PARAMETER ResourceGroupName
+  Name of Azure resource group where the virtual machine is created
+.PARAMETER VirtualMachineName
+  Name of the virtual machine to test.
+.OUTPUTS
+  (none)
+.RETURNVALUE
+  (none)
+.LINK
+  <link to external reference or documentation>
 .NOTES
-  2017-08-03 (Niels Grove-Rasmussen) Function created to hunt error on too long computername.
+  2017-08-10  (Niels Grove-Rasmussen) Function created to test Allocate - Start - Stop - Deallocate of a Azure virtual machine and get some number to compare
 #>
 [CmdletBinding()]
 [OutputType([void])]
-Param()
+Param(
+  [Parameter(Mandatory=$true, ValueFromPipeLine=$false,HelpMessage='Name of Azure Resource Group where the virtual machine is created.')]
+  [string]$ResourceGroupName,
 
-  Import-Module -Name AzureRM
+  [Parameter(Mandatory=$true, ValueFromPipeLine=$false,HelpMessage='Name of the Azure Virtual Machine.')]
+  [string]$VirtualMachineName
+)
 
-  'Test AzureRM module import...' | Write-Verbose
-  $AzureRM = Get-Module AzureRM
-  if ($AzureRM)
-  { 'OK - PowerShell module AzureRM is imported.' | Write-Verbose }
+Begin {
+  $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
+  "{0:s}Z  ::  Test-AzureVmStart( '$ResourceGroupName', 'VirtualMachineName' )" -f [System.DateTime]::UtcNow | Write-Verbose
+}
+
+Process {
+  "Test if resource group exists..." | Write-Verbose
+  "Test if virtual machine exists..." | Write-Verbose
+  "Test if virtual machine is stopped and deallocated..." | Write-Verbose
+
+
+  "{0:s}Z  Allocate virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $Result = Start-AzureRmVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName
+
+  [Microsoft.Azure.Commands.Compute.Models.PSComputeLongRunningOperation]$Result = Start-AzureRmVM -ResourceGroupName 'TesterRG_0RlkSHPsNO5' -Name 'TesterVM'
+  if ($Result.Status -ceq 'Succeeded')
+  { "OK - Azure virtual machine allocate status : '$($Result.Status)'." | Write-Verbose }
   else
-  { throw 'PowerShell module AzureRM is NOT imported!' }
+  { throw "Azure virtual machine allocate status : '$($Result.Status)'. 'Succeeded' was expected." }
 
-  'Test if already logged in Azure...' | Write-Verbose
-  try
-  { $AzureContext = Get-AzureRmContext -ErrorAction Continue }
-  catch [System.Management.Automation.PSInvalidOperationException] {
-    'Log in to Azure...' | Write-Verbose
-    $AzureContext = Login-AzureRmAccount
-  }
-  catch
-  { throw $_.Exception }
-  if ($AzureContext.Account -eq $null) {
-    'Log in to Azure...' #| Write-Verbose
-    $AzureContext = Login-AzureRmAccount
-  }
+
+  "{0:s}Z  Start virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+
+  "{0:s}Z  Stop virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force -StayProvisioned
+  if ($StopVmResult.Status -ceq 'Succeeded')
+  { "OK - Azure virtual machine stop status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
-  { "OK - Logged in Azure as '$($AzureContext.Account)'." | Write-Verbose }
+  { throw "Azure virtual machine stop status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
 
-  'Test if Azure resource group exists...' | Write-Verbose
-  Get-AzureRmResourceGroup -Name RG_Static -ErrorVariable NotPresent -ErrorAction SilentlyContinue
-  if ($NotPresent)
-  { "OK - Azure resource group 'RG_Static' does not exist." | Write-Verbose }
+  "{0:s}Z  Deallocate virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force
+  if ($StopVmResult.Status -ceq 'Succeeded')
+  { "OK - Azure virtual machine deallocate status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
-  { throw "The Azure resource group 'RG_Static' does already exist." }
+  { throw "Azure virtual machine deallocate status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
 
-  "{0:s}Z  Create Azure resource group..." -f [System.DateTime]::UtcNow | Write-Verbose
-  $AzureResourceGroup = New-AzureRmResourceGroup -ResourceGroupName RG_Static -Location WestEurope
-  if ($AzureResourceGroup.ProvisioningState -ceq 'Succeeded')
-  { "'OK - Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'." | Write-Verbose }
-  else
-  { throw "Azure resource group provisioning state : '$($AzureResourceGroup.ProvisioningState)'. 'Succeeded' was expected." }
+}
 
-  'Create Azure virtual network:' | Write-Verbose
-  'Create Azure subnet...' | Write-Verbose
-  $subnetConfig = New-AzureRmVirtualNetworkSubnetConfig -Name Subnet_Static -AddressPrefix 192.168.1.0/24
-  'Create Azure virtual network...' | Write-Verbose
-  $vnet = New-AzureRmVirtualNetwork `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
-    -Name Vnet_Static `
-    -AddressPrefix 192.168.0.0/16 `
-    -Subnet $subnetConfig
-  'Create Azure public IP address...' | Write-Verbose
-  $pip = New-AzureRmPublicIpAddress `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
-    -AllocationMethod Static `
-    -Name PublicIp_Static
-  'Create Azure network interface card (NIC)...' | Write-Verbose
-  $nic = New-AzureRmNetworkInterface `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
-    -Name Nic_Static `
-    -SubnetId $vnet.Subnets[0].Id `
-    -PublicIpAddressId $pip.Id
+End {
+  $mywatch.Stop()
+  [string]$Message = "Test-AzureVmStart finished with success. Duration = $($mywatch.Elapsed.ToString()). [hh:mm:ss.ddd]"
+  "{0:s}Z  $Message" -f [System.DateTime]::UtcNow | Write-Output
+}
+}  # Test-AzureVmStart
 
-  'Create Azure Network Security Group (NSG):' | Write-Verbose
-  'Create Azure security rule...' | Write-Verbose
-  $nsgRule = New-AzureRmNetworkSecurityRuleConfig `
-    -Name NsgRule_Static `
-    -Protocol Tcp `
-    -Direction Inbound `
-    -Priority 1000 `
-    -SourceAddressPrefix * `
-    -SourcePortRange * `
-    -DestinationAddressPrefix * `
-    -DestinationPortRange 3389 `
-    -Access Allow
-  'Create Azure Network Security Group...' | Write-Verbose
-  $nsg= New-AzureRmNetworkSecurityGroup `
-    -ResourceGroupName RG_Static `
-    -Location WestEurope `
-    -Name Nsg_Static `
-    -SecurityRules $nsgRule
-  'Add NSG to subnet...' | Write-Verbose
-  Set-AzureRmVirtualNetworkSubnetConfig `
-    -Name Subnet_Static `
-    -VirtualNetwork $vnet `
-    -NetworkSecurityGroup $nsg `
-    -AddressPrefix 192.168.1.0/24
-  'Update Azure virtual network...' | Write-Verbose
-  Set-AzureRmVirtualNetwork -VirtualNetwork $vnet
-  '/NSG created.' | Write-Verbose
-
-  'Get credentials for admin on vm...' | Write-Verbose
-  $cred = Get-Credential
-
-  'Create Azure virtual machine:' | Write-Verbose
-  'Create initial configuration...' | Write-Verbose
-  $vm = New-AzureRmVMConfig -VMName VM_Static -VMSize Standard_D1
-  'Add OS information...' | Write-Verbose
-  $vm = Set-AzureRmVMOperatingSystem `
-    -VM $vm `
-    -Windows `
-    -ComputerName VM_Static `
-    -Credential $cred `
-    -ProvisionVMAgent -EnableAutoUpdate
-  'Add image information...' | Write-Verbose
-  $vm = Set-AzureRmVMSourceImage `
-    -VM $vm `
-    -PublisherName MicrosoftWindowsServer `
-    -Offer WindowsServer `
-    -Skus 2016-Datacenter `
-    -Version latest
-  'Add OS disk settings...' | Write-Verbose
-  $vm = Set-AzureRmVMOSDisk `
-    -VM $vm `
-    -Name OsDisk_Static `
-    -DiskSizeInGB 128 `
-    -CreateOption FromImage `
-    -Caching ReadWrite
-  'Add NIC...' | Write-Verbose
-  $vm = Add-AzureRmVMNetworkInterface -VM $vm -Id $nic.Id
-
-  $vm | Out-GridView
-
-  "Create virtual machine 'VM_Static'..." | Write-Verbose
-  try
-  { New-AzureRmVM -ResourceGroupName RG_Static -Location WestEurope -VM $vm -Verbose -Debug }
-  catch 
-  { throw $_ }
-  '/virtual machine created.' | Write-Verbose
-}  # New-StaticVm
+#endregion Test
 
 #endregion infrastructure
 
@@ -436,10 +370,13 @@ End {
 
 Clear-Host
 
-New-AzureVm -Verbose #-Debug
+#(0..9) |  # DOES NOT WORK
+#New-AzureVm -Verbose #-Debug
 
 #New-StaticVm -Verbose #-Debug
 
+
+Test-AzureVmStart -ResourceGroupName 'TesterRG_0RlkSHPsNO5' -VirtualMachineName 'TesterVM'
 
 #Remove-AzureRmResourceGroup -Name 'TesterRG_7WpKGqg4YMb' -Verbose #-Force
 
