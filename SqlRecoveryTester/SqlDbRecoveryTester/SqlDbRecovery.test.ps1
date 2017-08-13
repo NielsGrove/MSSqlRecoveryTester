@@ -276,16 +276,19 @@ Param(
 Begin {
   $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
   "{0:s}Z  ::  Test-AzureVmStart( '$ResourceGroupName', 'VirtualMachineName' )" -f [System.DateTime]::UtcNow | Write-Verbose
+
+  $CompleteMeasure = New-Object psobject
 }
 
 Process {
   "Test if resource group exists..." | Write-Verbose  # implement as parameter rule
+  "  (TBD)" | Write-Verbose
 
   "Test if virtual machine exists..." | Write-Verbose  # implement as parameter rule
   $AzureRmVms = Get-AzureRmVM -ResourceGroupName $ResourceGroupName
   foreach ($Vm in $AzureRmVms) {
     if ($Vm.Name -ceq $VirtualMachineName)
-    { "OK - The virtual machine '$VirtualMachineName' does exist." | Write-Verbose }
+    { "  OK - The virtual machine '$VirtualMachineName' does exist." | Write-Verbose }
     else
     { throw "The virtual machine '$VirtualMachineName' does not exist in the resource group '$ResourceGroupName'." }
   }
@@ -296,38 +299,52 @@ Process {
     #$VmStatus.Code | Write-Debug
     if ($VmStatus.Code -cmatch 'PowerState/(?<allocation>.*)') {
       if ($Matches['allocation'] -ceq 'deallocated')
-      { "OK - PowerState : $($Matches['allocation'])" | Write-Verbose }
+      { "  OK - PowerState : $($Matches['allocation'])" | Write-Verbose }
       else
       { throw "The virtual machine '$VirtualachineName' is NOT stopped and deallocated. PowerState : $($Matches['allocation']). 'deallocated' expected." }
     }
   }
 
-  exit 42  # for test!!!
+  #exit 42  # for test!!!
   
   "{0:s}Z  Allocate virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  "SORRY - it is not possible to allocate and not start a virtual machine in Azure." | Write-Warning
+
+  "{0:s}Z  Start virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $StartVmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
   $Result = Start-AzureRmVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName
-  if ($Result.Status -ceq 'Succeeded')
-  { "OK - Azure virtual machine allocate status : '$($Result.Status)'." | Write-Verbose }
+  if ($Result.Status -ceq 'Succeeded') {
+    $StartVMStopWatch.Stop()
+    "  OK - Azure virtual machine allocate status : '$($Result.Status)'." | Write-Verbose
+  }
   else
   { throw "Azure virtual machine allocate status : '$($Result.Status)'. 'Succeeded' was expected." }
 
-
-  "{0:s}Z  Start virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
-
   "{0:s}Z  Stop virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $StopVmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
   $Result = Stop-AzureRmVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -Force -StayProvisioned
-  if ($Result.Status -ceq 'Succeeded')
-  { "OK - Azure virtual machine stop status : '$($Result.Status)'." | Write-Verbose }
+  if ($Result.Status -ceq 'Succeeded') {
+    $StopVmStopWatch.Stop()
+    "  OK - Azure virtual machine stop status : '$($Result.Status)'." | Write-Verbose
+  }
   else
   { throw "Azure virtual machine stop status : '$($Result.Status)'. 'Succeeded' was expected." }
 
   "{0:s}Z  Deallocate virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
+  $DeallocateVmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
   $Result = Stop-AzureRmVM -ResourceGroupName $ResourceGroupName -Name $VirtualMachineName -Force
-  if ($Result.Status -ceq 'Succeeded')
-  { "OK - Azure virtual machine deallocate status : '$($Result.Status)'." | Write-Verbose }
+  if ($Result.Status -ceq 'Succeeded') {
+    $DeallocateVmStopWatch.Stop()
+    "  OK - Azure virtual machine deallocate status : '$($Result.Status)'." | Write-Verbose
+  }
   else
   { throw "Azure virtual machine deallocate status : '$($Result.Status)'. 'Succeeded' was expected." }
 
+  $CompleteMeasure | Add-Member -NotePropertyMembers @{
+    Name = 'StartVm'; $StartVmStopWatch.Elapsed
+    Name = 'StopVm'; $StopVmStopWatch.Elapsed
+    Name = 'DeallocateVm'; $DeallocateVmStopWatch.Elapsed
+  }
 }
 
 End {
