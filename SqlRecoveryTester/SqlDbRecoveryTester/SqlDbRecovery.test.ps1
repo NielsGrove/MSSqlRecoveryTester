@@ -183,7 +183,17 @@ Process {
   'Create Azure virtual machine:' | Write-Verbose
   $vmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
   'Get credentials for admin on vm...' | Write-Verbose
-  $cred = Get-Credential
+  <# ToDo : Test and loop password requirements
+  New-AzureRmVM : The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following: 
+  1) Contains an uppercase character
+  2) Contains a lowercase character
+  3) Contains a numeric digit
+  4) Contains a special character.
+  #>
+  try { $cred = Get-Credential }
+  catch {
+    throw $_.Exception
+  }
   'Create initial configuration...' | Write-Verbose
   $vm = New-AzureRmVMConfig `
     -VMName $AzureVm.Name `
