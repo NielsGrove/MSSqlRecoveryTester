@@ -71,13 +71,13 @@ Begin {
   { $AzureContext = Get-AzureRmContext -ErrorAction Continue }
   catch [System.Management.Automation.PSInvalidOperationException] {
     'Log in to Azure...' | Write-Verbose
-    $AzureContext = Login-AzureRmAccount
+    $AzureContext = Add-AzureRmAccount
   }
   catch
   { throw $_.Exception }
   if ($AzureContext.Account -eq $null) {
     'Log in to Azure...' | Write-Verbose
-    $AzureContext = Login-AzureRmAccount
+    $AzureContext = Add-AzureRmAccount
   }
   else
   { "OK - Logged in Azure as '$($AzureContext.Account)'." | Write-Verbose }
@@ -236,15 +236,12 @@ Process {
   { "OK - Azure virtual machine stop status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
   { throw "Azure virtual machine stop status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
-  'Deallocate virtual machine...' | Write-Verbose
+  "{0:s}Z  Deallocate virtual machine..." -f [System.DateTime]::UtcNow | Write-Verbose
   $StopVmResult = Stop-AzureRmVM -ResourceGroupName $AzureVm.ResourceGroupName -Name $AzureVm.Name -Force
   if ($StopVmResult.Status -ceq 'Succeeded')
   { "OK - Azure virtual machine deallocate status : '$($StopVmResult.Status)'." | Write-Verbose }
   else
   { throw "Azure virtual machine deallocate status : '$($StopVmResult.Status)'. 'Succeeded' was expected." }
-
-
-  #ToDo: Install SSDB (w/DSC) in another function
 }
 
 End {
@@ -315,8 +312,6 @@ Process {
     }
   }
 
-  #exit 42  # for test!!!
-  
   "{0:s}Z  Allocate virtual machine '$VirtualMachineName'..." -f [System.DateTime]::UtcNow | Write-Verbose
   "SORRY - it is not possible to allocate and not start a virtual machine in Azure." | Write-Warning
 
@@ -351,9 +346,9 @@ Process {
   { throw "Azure virtual machine deallocate status : '$($Result.Status)'. 'Succeeded' was expected." }
 
   $CompleteMeasure | Add-Member -NotePropertyMembers @{
-    Name = 'StartVm'; $StartVmStopWatch.Elapsed
-    Name = 'StopVm'; $StopVmStopWatch.Elapsed
-    Name = 'DeallocateVm'; $DeallocateVmStopWatch.Elapsed
+    'StartVm' = $StartVmStopWatch.Elapsed;
+    'StopVm' = $StopVmStopWatch.Elapsed;
+    'DeallocateVm' = $DeallocateVmStopWatch.Elapsed
   }
 }
 
@@ -369,59 +364,17 @@ End {
 #endregion infrastructure
 
 
-#region SqlDb
-
-function Verb-Noun {
-<#
-.DESCRIPTION
-  <Description of the function>
-.PARAMETER <Name>
-  <parameter description>
-.OUTPUTS
-  (none)
-.RETURNVALUE
-  (none)
-.LINK
-  <link to external reference or documentation>
-.NOTES
-  <timestamp> <version>  <initials> <version changes and description>
-#>
-[CmdletBinding()]
-[OutputType([void])]
-Param(
-  [Parameter(Mandatory=$true, ValueFromPipeLine=$true,HelpMessage='Take your time to write a good help message...')]
-  [string]$param1
-)
-
-Begin {
-  $mywatch = [System.Diagnostics.Stopwatch]::StartNew()
-  "{0:s}Z  ::  Verb-Noun( '$param1' )" -f [System.DateTime]::UtcNow | Write-Verbose
-}
-
-Process {
-}
-
-End {
-  $mywatch.Stop()
-  [string]$Message = "<function> finished with success. Duration = $($mywatch.Elapsed.ToString()). [hh:mm:ss.ddd]"
-  "{0:s}Z  $Message" -f [System.DateTime]::UtcNow | Write-Output
-}
-}  # Verb-Noun()
-
-#endregion SqlDb
-
-
 ###  INVOKE  ###
 
 Clear-Host
 
 #(0..9) |  # DOES NOT WORK
-#New-AzureVm -Verbose #-Debug
+New-AzureVm -Verbose #-Debug
 
 #New-StaticVm -Verbose #-Debug
 
 
-Test-AzureVmStart -ResourceGroupName 'TesterRG_0RlkSHPsNO5' -VirtualMachineName 'TesterVM' -Verbose
+#Test-AzureVmStart -ResourceGroupName 'TesterRG_0RlkSHPsNO5' -VirtualMachineName 'TesterVM' -Verbose
 
 #Remove-AzureRmResourceGroup -Name 'TesterRG_7WpKGqg4YMb' -Verbose #-Force
 
