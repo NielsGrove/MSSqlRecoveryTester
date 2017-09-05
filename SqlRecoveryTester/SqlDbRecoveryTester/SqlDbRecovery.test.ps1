@@ -45,6 +45,7 @@ function New-AzureVm {
   2017-08-02  (Niels Grove-Rasmussen) Function renamed to New-AzureVm. SSDB or other application installation will be in seperate functions.
   2017-08-03  (Niels Grove-Rasmussen) Dynamic resource group name for scalability. Existince of RG test added.
   2017-08-09  (Niels Grove-Rasmussen) Stop and Deallocate virtual machine added.
+  2017-09-05  (NieGro) Get credentials for vm admin moved to start of function.
 #>
 [CmdletBinding()]
 [OutputType([void])]
@@ -84,6 +85,19 @@ Begin {
 }
 
 Process {
+  'Get credentials for admin on vm...' | Write-Verbose
+  <# ToDo : Test and loop password requirements
+  New-AzureRmVM : The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following: 
+  1) Contains an uppercase character
+  2) Contains a lowercase character
+  3) Contains a numeric digit
+  4) Contains a special character.
+  #>
+  try { $cred = Get-Credential }
+  catch {
+    throw $_.Exception
+  }
+
   'Create Azure Resource Group identifier...' | Write-Verbose
   # 48..59  : cifres 0 (zero) to 9 in ASCII
   # 65..90  : Uppercase letters in ASCII
@@ -182,18 +196,6 @@ Process {
 
   'Create Azure virtual machine:' | Write-Verbose
   $vmStopWatch = [System.Diagnostics.Stopwatch]::StartNew()
-  'Get credentials for admin on vm...' | Write-Verbose
-  <# ToDo : Test and loop password requirements
-  New-AzureRmVM : The supplied password must be between 8-123 characters long and must satisfy at least 3 of password complexity requirements from the following: 
-  1) Contains an uppercase character
-  2) Contains a lowercase character
-  3) Contains a numeric digit
-  4) Contains a special character.
-  #>
-  try { $cred = Get-Credential }
-  catch {
-    throw $_.Exception
-  }
   'Create initial configuration...' | Write-Verbose
   $vm = New-AzureRmVMConfig `
     -VMName $AzureVm.Name `
@@ -370,8 +372,6 @@ Clear-Host
 
 #(0..9) |  # DOES NOT WORK
 New-AzureVm -Verbose #-Debug
-
-#New-StaticVm -Verbose #-Debug
 
 
 #Test-AzureVmStart -ResourceGroupName 'TesterRG_0RlkSHPsNO5' -VirtualMachineName 'TesterVM' -Verbose
